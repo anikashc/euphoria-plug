@@ -1,81 +1,92 @@
 import {db} from '../firebase'
-import { collection, getDocs, getDoc, updateDoc, deleteDoc, addDoc, doc, query, where  } from 'firebase/firestore'
-const likesCollectionRef  = collection(db, 'likes')
-const favouritesCollectionRef  = collection(db, 'favourites')
-const dislikesCollectionRef  = collection(db, 'dislikes')
+import { collection, getDocs, getDoc, updateDoc, deleteDoc, addDoc, doc, query, where, increment, arrayUnion, arrayRemove  } from 'firebase/firestore'
+const userRefCollection = collection(db, 'users')
+const userId = localStorage.getItem('userId')
 class DashboardDataService {
 
-    // update the status of the 
+    // update the status of the user
     updateStatus = (userId, status) =>{
         const userDoc = doc(db,'users', userId)
-        return updateDoc(userDoc, status)
-    }
-    addLike= (liked)=> {
-        const {likedTo} = liked
-        const userDoc = doc(db,'users', likedTo)
-        getDoc(userDoc)
-        .then (data => {
-            // increment the number of dislikes
-            console.log(data.data())
-            updateDoc(userDoc, {likes: data.data().likes + 1})
-            .then(() => {
-                return addDoc(likesCollectionRef, liked)
-            })
-        })
-    }
-    addFavourite= (favouriteId,userId)=> {
-        // check if favourite list for the user exists and if not create one
-        const q = query(favouritesCollectionRef, where('user', '==', userId));
-        getDocs(q)
-        .then(data => {
-            console.log(data.docs)
-            if(data.docs.length === 0){
-                addDoc(favouritesCollectionRef, {user: userId, favourites: [favouriteId]})
-            }else{
-                if(!data.docs[0].data().favourites.includes(favouriteId)){
-                    const favouriteDoc = doc(db,'favourites', data.docs[0].id)
-                    // console.log(favouriteDoc.data())
-                    updateDoc(favouriteDoc, {favourites: [...data.docs[0].data().favourites, favouriteId]})
-                }
-            }
-        })
-        .catch(err => {
-            console.log(err)
-        })
-    }
-
-    getFavourites =(userId) => {
-        const q = query(favouritesCollectionRef, where('user', '==', userId));
-        return getDocs(q)
+        updateDoc(userDoc, status)
+        console.log('status updated')
+        return getDoc(userDoc)
     }
     
-    addDislike=(disliked)=> {
-        const {dislikedTo} = disliked
-        const userDoc = doc(db,'users', dislikedTo)
-        getDoc(userDoc)
-        .then (data => {
-            // increment the number of dislikes
-            console.log(data.data())
-            updateDoc(userDoc, {dislikes: data.data().dislikes + 1})
-            .then(() => {
-                return addDoc(dislikesCollectionRef, disliked)
-            })
+    dislikeProfile = (dislikeId) => {
+        // increment the dislike count and add the profile to the list of dislikes
+        const dislikeDoc = doc(db,'users', dislikeId)
+     
+        updateDoc(dislikeDoc, {
+            dislikes: increment(1)
         })
+        const userDoc = doc(db,'users', userId)
+
+        updateDoc(userDoc, {
+            disliked: arrayUnion(dislikeId)
+        })
+        return getDocs(userRefCollection) 
     }
-    getLikes = () => {
-        return getDocs(likesCollectionRef)
+
+    unDislikeProfile = (dislikeId) => {
+        const dislikeDoc = doc(db,'users', dislikeId)
+     
+        updateDoc(dislikeDoc, {
+            dislikes: increment(-1)
+        })
+        const userDoc = doc(db,'users', userId)
+
+        updateDoc(userDoc, {
+            disliked: arrayRemove(dislikeId)
+        })
+        return getDocs(userRefCollection) 
     }
-    getDislikes = () => {
-        return getDocs(dislikesCollectionRef)
+
+    likeProfile = (likeId) => {
+        // increment the like count and add the profile to the list of likes
+        const likeDoc = doc(db,'users', likeId)
+     
+        updateDoc(likeDoc, {
+            likes: increment(1)
+        })
+        const userDoc = doc(db,'users', userId)
+
+        updateDoc(userDoc, {
+            liked: arrayUnion(likeId)
+        })
+        return getDocs(userRefCollection) 
     }
-    getLikesToUserId = (userId) => {
-        const q = query(likesCollectionRef, where('likedTo', '==', userId));
+
+    unLikeProfile = (likeId) => {
+        const likeDoc = doc(db,'users', likeId)
+     
+        updateDoc(likeDoc, {
+            likes: increment(-1)
+        })
+        const userDoc = doc(db,'users', userId)
+
+        updateDoc(userDoc, {
+            liked: arrayRemove(likeId)
+        })
+        return getDocs(userRefCollection) 
+    }
+
+    favouriteProfile = (profile) => {
+        const userDoc = doc(db,'users', userId)
         
-        return getDocs(q)
+
+        updateDoc(userDoc, {
+            favourites: arrayUnion(profile)
+        })
+        return getDocs(userRefCollection) 
     }
-    getDislikesToUserId = (userId) => {
-        const q = query(dislikesCollectionRef, where('dislikedTo', '==', userId));
-        return getDocs(q)
+
+    unFavouriteProfile = (profile) => {
+        const userDoc = doc(db,'users', userId)
+        
+        updateDoc(userDoc, {
+            favourites: arrayRemove(profile)
+        })
+        return getDocs(userRefCollection) 
     }
 }
 
