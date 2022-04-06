@@ -17,10 +17,17 @@ const AppRoutes = () => {
     return routes;
 };
 const App = () => ( 
-    <Layout>
+    <Layout className="site-layout-content">
         <Navbar />
-        <Content style={{ height: '100%' }}>
-        <div className="site-layout-content">
+        <Content style={{ 
+            minHeight: '80vh',
+            margin: '24px 16px',
+            padding: 24,
+            marginTop: 64,
+            
+
+        }}>
+        <div >
             <Router>
                 <AppRoutes />
             </Router>

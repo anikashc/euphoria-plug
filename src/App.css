@@ -1,8 +1,10 @@
 .site-layout-content {
     min-height: 85vh;
-    background: #fff;
-    padding: 100 50;
-    marginTop: 64
+    background: rgba(0, 128, 0, 0.3)
+}
+.ant-card-meta-title {
+    white-space: pre-line;
+    overflow: hidden;
 }
 .logo {
     float: left;

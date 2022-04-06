@@ -1,5 +1,5 @@
 import React, {useEffect,useState} from 'react'
-import { Input, Button,Col,Row } from 'antd';
+import { Input, Button,Col,Row,Layout,Pagination, Space,Spin, Grid, Skeleton } from 'antd';
 import { Typography } from 'antd';
 import {db,auth} from '../firebase'
 import { useNavigate } from 'react-router-dom';
@@ -8,10 +8,13 @@ import UserDataServices from '../services/user.services'
 import Profile from '../components/profile';
 import Favourite from '../components/favourite'
 import useStore from '../store';
+import { LoadingOutlined } from '@ant-design/icons';
+import Info from '../components/Info';
 
 const { Title } = Typography;
 const { TextArea } = Input;
-
+const pageSizeFav = 3;
+const pageSizePro = 6;
 const Dashboard = () => {
     const setProfile = useStore((state) => state.setProfile)
     const setProfiles = useStore((state) => state.setProfiles)
@@ -21,124 +24,236 @@ const Dashboard = () => {
     const profile = useStore((state) => state.profile)
     const profiles = useStore((state) => state.profiles)
     const favourites = useStore((state) => state.favourites)
+
+
+    const [isLoading, setIsLoading] = useState(false)
+    const [isUpdating, setIsUpdating] = useState(false)
     const userId = localStorage.getItem('userId')
+    const [currentFav, setCurrentFav] = useState(1)
+    const [minIndexFav, setMinIndexFav] = useState(0)
+    const [maxIndexFav, setMaxIndexFav] = useState(0)
+    const [totalPageFav, setTotalPageFav] = useState(0)
+
+    const [currentPro, setCurrentPro] = useState(1)
+    const [minIndexPro, setMinIndexPro] = useState(0)
+    const [maxIndexPro, setMaxIndexPro] = useState(0)
+    const [totalPagePro, setTotalPagePro] = useState(0)
+
+    const [totalFavourites, setTotalFavourites] = useState(0)
     const [totalProfiles, setTotalProfiles] = useState(0)
 
     let navigate = useNavigate();
     const [status, setStatus] = useState('')
 
     const updateStatus = async () =>{
+        setIsUpdating(true)
         const updatedUser = await DashboardDataService.updateStatus(userId,{
             status: status
         })
         setProfile(updatedUser.data())
         setStatus('')
+        setIsUpdating(false)
+    }
+    const handleChangeFav =(page) =>{
+        setCurrentFav(page)
+        setMinIndexFav((page-1)*pageSizeFav)
+        setMaxIndexFav(page*pageSizeFav)
     }
 
-    const getProfiles = async() => {
-        const data = await UserDataServices.getUsers(userId)
-        setTotalProfiles(data.docs.length)
-        const myProfile = data.docs.find(profile => profile.id === userId)
-        const otherProfiles = data.docs.filter(doc => doc.id !== userId);    
-        setProfiles(otherProfiles.map(doc => (  
-            {...doc.data(), id: doc.id} 
-        )))
-        setProfile(myProfile.data())
-        setFavourites(myProfile.data().favourites)
+    const handleChangePro =(page) =>{
+        setCurrentPro(page)
+        setMinIndexPro((page-1)*pageSizePro)
+        setMaxIndexPro(page*pageSizePro)
     }
 
     useEffect(() => {
         if(!token){
             navigate('/')
         }
-        getProfiles()
-    }, [token,setProfiles,navigate,setProfile,logout,setFavourites])
-    if(totalProfiles === 0){
-        return <div>Loading...</div>
+        setIsLoading(true)
+
+        
+        const getProfiles = async() => {
+            const data = await UserDataServices.getUsers(userId)
+            setTotalProfiles(data.docs.length)
+            const myProfile = data.docs.find(profile => profile.id === userId)
+            const otherProfiles = data.docs.filter(doc => doc.id !== userId);    
+            setProfiles(otherProfiles.map(doc => (  
+                {...doc.data(), id: doc.id} 
+            )))
+            setProfile(myProfile.data())
+            console.log('profile',profile)
+            setFavourites(myProfile.data().favourites)
+            setTotalFavourites(myProfile.data().favourites.length)
+            setTotalPageFav(myProfile.data().favourites.length/pageSizeFav)
+            setTotalPagePro(data.docs.length/pageSizePro)
+            setMinIndexFav(0);
+            setMaxIndexFav(pageSizeFav);
+            setMinIndexPro(0);
+            setMaxIndexPro(pageSizePro);
+        }
+
+        getProfiles().then(() => {
+            setIsLoading(false)
+            console.log('profiles',profiles)
+        })
+
+        .catch(console.error);
+    }, [setProfile, setProfiles, setFavourites])
+
+    useEffect(() => {
+        if(!token){
+            navigate('/')
+        }
+    }, [logout, token, navigate])
+
+    if(isLoading){
+        return <div><Skeleton active /></div>
     }
     else if(profile.status === ""){
         return (
-            <div>
-                <Title level={2}>Dashboard</Title>
-                    <Title>Set your first status...</Title>
-                    <TextArea rows={4} placeholder="Share your status..."
-                        onChange = {(e) => {
-                            setStatus(e.target.value)
-                        }} 
-                        value={status}
-                    />
-                    <Button type="primary" onClick={() => {
-                        
-                        if(status){
-                            updateStatus()
+            <Space>
+                <Layout>
+                    <Row>
+                        <Col span={24}>
+                            <Title level={2}>
+                                <span>Hi {profile.name}</span>
+                            </Title>
+                        </Col>
+                    </Row>
+
+                  
+                        <Title>Set your first status...</Title>
+                        <TextArea rows={4} placeholder="Share your status..."
+                            onChange = {(e) => {
+                                setStatus(e.target.value)
+                            }} 
+                            value={status}
+                        />
+                        <Button type="primary" 
+                        loading={isUpdating}
+                        onClick={() => {
                             
-                        }
-                }}>Update Status</Button>
-            </div>
+                            if(status){
+                                updateStatus()
+                                
+                            }
+                            
+                        }}
+                            style={{
+                                marginTop: '10px'
+                            }}
+                        >Update Status</Button>
+                </Layout>
+            </Space>
         )
     }
     return (
-        <div>
-            <Title level={2}>Dashboard</Title>
-            <Title>What's your status?</Title>
-            <TextArea rows={4} placeholder="Share your status..."
-                onChange = {(e) => {
-                    setStatus(e.target.value)
-                }} 
-                value={status}
-            />
-            <Button type="primary" onClick={() => {
+        <Space>
+
+            <Layout>
+                <Row justify='center' gutter={8}>
+                    <Col span={24}>
+                        <Title level={2}>
+                            <span>Hi {profile.name}</span>
+                        </Title>
+                    </Col>
+                </Row>
+
+                <Row justify='center' gutter={99}>
+                    <Col span={10} 
+                    >
+                        <Title level={3}>What's your status?</Title>
+                        <TextArea autoSize={true} placeholder="Share your status in 100 characters..."
+                            onChange = {(e) => {
+                                setStatus(e.target.value)
+                            }} 
+                            value={status}
+                            showCount={true}
+                            maxLength={100}
+                        />
+                        <Button type="primary" 
+                        loading={isUpdating}
+                        onClick={() => {
+                            
+                            if(status){
+                                updateStatus()
+                                
+                            }
+                        }}
+                        style={{
+                            marginTop: '10px'
+                        }}
+                        >Update Status</Button>
+                    </Col>
+                    <Col span={10}
+                    >
+                        <Info profile={profile} />
+                    </Col>
+                </Row>
                 
-                if(status){
-                    updateStatus()
-                    
-                }
-            }}>Update Status</Button>
-            <Row>
-                <Col md={8}>    
-                    <Title level={2}>My Likes</Title>
-                    <Title level={4}>{profile.likes}</Title>
-                </Col>
-                <Col md={8}>
-                    <Title level={2}>My Dislikes</Title>
-                    <Title level={4}>{profile.dislikes}</Title>
-                </Col>
-                <Col md={8}>
-                    <Title level={2}>My Status</Title>
-                    <Title level={4}>{profile.status}</Title>
-                </Col>
-
-            </Row>
+                
 
 
-            <Title>Favourites</Title>
+                <Row>
+                    {favourites.length>0 ? (
+                        <Space>
+                            <Title level={2}>Favourites</Title>
+                            <Pagination
+                            // defaultCurrent={1}
+                                pageSize={pageSizeFav}
+                                current={currentFav}
+                                total={totalFavourites}
+                                onChange={handleChangeFav}
+                            />
+                        </Space>
+                    ):null}
 
-            {/* <pre>{JSON.stringify(profiles,undefined,2)}</pre>        */}
-            {favourites.length>0 && favourites.map(profile => {
-                return (
-                    <div key={profile.id}>
-                        {/* <Col span={8}> */}
-                            <Favourite profile={profile}/>
-                        {/* </Col> */}
-                    </div>
-                )
-            })}
+                </Row>
 
-            <Title>Other Profiles</Title>
+                <Row>
 
-            
+                    {favourites.length>0 && favourites.map((profile,index) => {
+                        return (index >= minIndexFav &&
+                        index < maxIndexFav &&(
+                        
+                            <div key={profile.id}>
+                                <Col span={24}>
+                                    <Favourite profile={profile}/>
+                                </Col>
+                            </div>))
+                        
+                    })}
+                </Row>
+                
+                <Space>
+                    <Title level={2}>All Profiles</Title>
+                    <Pagination
+                        pageSize={pageSizePro}
+                        current={currentPro}
+                        total={totalProfiles}
+                        onChange={handleChangePro}
+                    />
+                </Space>
 
-            {/* <pre>{JSON.stringify(profiles,undefined,2)}</pre>        */}
-            {profiles.length>0 && profiles.map(profile => {
-                return (
-                    <div key={profile.id}>
-                        {/* <Col span={8}> */}
-                            <Profile profile={profile}/>
-                        {/* </Col> */}
-                    </div>
-                )
-            })}    
-        </div>
+                <Row>
+                    {profiles.length>0 && profiles.map((profile,index) => {
+                        
+                        return ( index >= minIndexPro &&
+                            index < maxIndexPro &&
+
+                            <div key={profile.id}>
+                                <Col span={24}>
+
+                                    <Profile profile={profile} />
+                                </Col>
+                            </div>
+                        )
+                    })}    
+
+                </Row>
+            </Layout>
+        </Space>
     )
 }
 

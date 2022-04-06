@@ -1,5 +1,5 @@
 import React,{useEffect} from 'react'
-import { Button, Col, Row, Typography } from 'antd';
+import { Button, Col, Layout, Row, Space, Typography } from 'antd';
 import { useNavigate } from "react-router-dom";
 import {auth} from '../firebase'
 import {signInWithPopup, GoogleAuthProvider,signInAnonymously } from "firebase/auth";
@@ -7,6 +7,7 @@ import UserDataService from '../services/user.services';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import useStore from '../store';
+import { LoadingOutlined } from '@ant-design/icons';
 
 const Login = (props) => {
     let navigate = useNavigate();
@@ -26,26 +27,29 @@ const Login = (props) => {
         const result = await signInAnonymously(auth)
         if(result){
             setToken(result.user.accessToken)
-
-            const getRandomUser = await axios.get('https://randomuser.me/api/')
-            const user = getRandomUser.data.results[0]
-            const { name, email, picture } = user
-            const newUser = {
-                id: result.user.uid,
-                name : name.first + ' ' + name.last,
-                email,
-                photo: picture.large,
-                status: '',
-                likes: 0,
-                dislikes: 0,
-                liked : [],
-                disliked : [],
-                favourites: [],
-                createdAt: new Date().toISOString(),
+            if(!localStorage.getItem('userId')){
+                const getRandomUser = await axios.get('https://randomuser.me/api/')
+                const user = getRandomUser.data.results[0]
+                const { name, email, picture } = user
+                const newUser = {
+                    id: result.user.uid,
+                    name : name.first + ' ' + name.last,
+                    email,
+                    photo: picture.large,
+                    status: '',
+                    likes: 0,
+                    dislikes: 0,
+                    liked : [],
+                    anonymous: true,
+                    disliked : [],
+                    favourites: [],
+                    createdAt: new Date().toISOString(),
+                }
+    
+                await UserDataService.addUser(newUser)
+                localStorage.setItem('userId', result.user.uid)
             }
-
-            await UserDataService.addUser(newUser)
-            localStorage.setItem('userId', result.user.uid)
+            localStorage.setItem('anon', true)
             navigate('/dashboard')
         }    
     }
@@ -72,6 +76,7 @@ const Login = (props) => {
                     likes: 0,
                     dislikes: 0,
                     liked : [],
+                    anonymous: false,
                     disliked : [],
                     favourites: [],
                     createdAt: new Date().toISOString(),
@@ -97,19 +102,23 @@ const Login = (props) => {
     }
 
     return (
-    <div>
+    <Layout>
         
 
         <Row type="flex" align="middle">
             <Col md={10}>
                 {
                 token 
-                ? <Typography style={{fontSize: '1.5rem'}}> Loading Dashboard... </Typography>
+                ? <LoadingOutlined />
                 : (
-                    <div>
-                        <Button type="primary" onClick={signInWithGoogle}>Sign in with Google</Button>
-                        <Button type="primary" onClick={signInAnon}>Sign in anonymously</Button>
-                    </div>
+                    <Space>
+                        <Row>
+                            <Button type="primary" onClick={signInWithGoogle}>Sign in with Google</Button>
+                        </Row>
+                        <Row>
+                            <Button type="primary" onClick={signInAnon}>Sign in anonymously</Button>
+                        </Row>
+                    </Space>
                 )
 
             }
@@ -121,7 +130,7 @@ const Login = (props) => {
 
         
        
-    </div>
+    </Layout>
   )
 }
 
