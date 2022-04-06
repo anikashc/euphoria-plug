@@ -15,7 +15,6 @@ const Info = ({profile}) => {
             >
                 <Meta
                 title={profile.status}
-                // description={profile.status}
                 style={{
                     whiteSpace: 'normal', height: 'auto',
                     overflow: 'hidden'

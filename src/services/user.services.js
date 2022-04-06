@@ -1,5 +1,5 @@
 import {db} from '../firebase'
-import { collection, getDocs, getDoc, updateDoc, deleteDoc, addDoc, doc , setDoc,query,where, orderBy } from 'firebase/firestore'
+import { collection, getDocs, getDoc, updateDoc, doc , setDoc,query, orderBy } from 'firebase/firestore'
 const userCollectionRef  = collection(db, 'users')
 class UserDataService {
     addUser = (user) =>{

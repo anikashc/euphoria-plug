@@ -32,17 +32,6 @@ export const setProfilesReducer = (state = [], action) => {
     }
 }
 
-export const setLogoutReducer = (state = false, action) => {
-    switch (action.type) {
-        case 'SET_LOGOUT':
-            return action.payload;
-        case 'SET_LOGOUT_RESET':
-            return false;
-        default:
-            return state;
-    }
-}
-
 export const setFavouritesReducer = (state = [], action) => {
     switch (action.type) {
         case 'SET_FAVOURITES':

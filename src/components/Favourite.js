@@ -1,7 +1,6 @@
 import React, {useState} from 'react'
 import { Button, Card, Col, Row, Avatar } from 'antd';
 import DashboardDataService from '../services/dashboard.services'
-// import useStore from '../store/indexOld';
 import { useDispatch,useSelector } from 'react-redux';
 import { setProfile, setProfiles, setFavourites} from '../actions/dashboardActions';
 
@@ -9,9 +8,6 @@ const { Meta } = Card;
 const Favourite = ({profile}) => {
     const dispatch = useDispatch()
     const userProfile = useSelector((state) => state.profile)
-    // const setProfile = useStore((state) => state.setProfile)
-    // const setProfiles = useStore((state) => state.setProfiles)
-    // const setFavourites = useStore((state) => state.setFavourites)
     const [isLoading, setIsLoading]  = useState(false)
     const userId = localStorage.getItem('userId')
     
@@ -86,7 +82,6 @@ const Favourite = ({profile}) => {
     return (
 
         <div>
-
             <Card
                 hoverable={true}
                 style={{ width: 300, margin: '15',}}
@@ -111,8 +106,6 @@ const Favourite = ({profile}) => {
                 description={profile.status}
                 />
             </Card>
-        
-        
         </div>
     )
 }

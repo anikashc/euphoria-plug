@@ -8,7 +8,7 @@ import Login from "./screens/Login";
 import { Layout,Menu } from 'antd';
 import Dashboard from "./screens/Dashboard";
 import Navbar from "./components/Navbar";
-const { Header, Footer, Content } = Layout;
+const { Footer, Content } = Layout;
 const AppRoutes = () => {
     let routes = useRoutes([
         { path: "/", element: <Login /> },

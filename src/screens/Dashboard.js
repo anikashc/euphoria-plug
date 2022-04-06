@@ -7,9 +7,8 @@ import DashboardDataService from '../services/dashboard.services'
 import UserDataServices from '../services/user.services'
 import Profile from '../components/profile';
 import Favourite from '../components/favourite'
-// import useStore from '../store/indexOld';
 import Info from '../components/Info';
-import { setProfile, setProfiles, setFavourites, setToken, setLogout} from '../actions/dashboardActions';
+import { setProfile, setProfiles, setFavourites, setToken } from '../actions/dashboardActions';
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -17,18 +16,12 @@ const pageSizeFav = 3;
 const pageSizePro = 6;
 const Dashboard = () => {
     const dispatch = useDispatch()
-
-    // const setProfile = useStore((state) => state.setProfile)
-    // const setProfiles = useStore((state) => state.setProfiles)
-    // const setFavourites = useStore((state) => state.setFavourites)
-    const logout = useSelector((state) => state.logout)
     const token = useSelector((state) => state.token) || localStorage.getItem('token')
     const profile = useSelector((state) => state.profile)
     console.log(profile)
     const profiles = useSelector((state) => state.profiles)
     const favourites = useSelector((state) => state.favourites)
 
-    // for pagination
     const [isLoading, setIsLoading] = useState(false)
     const [isUpdating, setIsUpdating] = useState(false)
     const userId = localStorage.getItem('userId')
@@ -81,16 +74,11 @@ const Dashboard = () => {
             setTotalProfiles(data.docs.length)
             const myProfile = data.docs.find(profile => profile.id === userId)
             const otherProfiles = data.docs.filter(doc => doc.id !== userId);    
-            // setProfiles(otherProfiles.map(doc => (  
-            //     {...doc.data(), id: doc.id} 
-            // )))
             dispatch(setProfiles(otherProfiles.map(doc => (  
                 {...doc.data(), id: doc.id} 
             ))))
             dispatch(setProfile(myProfile.data()))
-            // setProfile(myProfile.data())
             console.log('profile',profile)
-            // setFavourites(myProfile.data().favourites)
             dispatch(setFavourites(myProfile.data().favourites))
 
 
@@ -110,7 +98,13 @@ const Dashboard = () => {
         })
 
         .catch(console.error);
-    }, [logout, token, setToken, setLogout, navigate, setProfile, setProfiles, setFavourites])
+    }, [navigate, setProfile, setProfiles, setFavourites])
+
+    useEffect(() => {
+        if(!token){
+            navigate('/')
+        }
+    }, [token, setToken])
 
     if(isLoading){
         return <div><Skeleton active /></div>
@@ -140,10 +134,8 @@ const Dashboard = () => {
                         onClick={() => {
                             
                             if(status){
-                                updateStatus()
-                                
-                            }
-                            
+                                updateStatus()   
+                            }                         
                         }}
                             style={{
                                 marginTop: '10px'
@@ -186,7 +178,6 @@ const Dashboard = () => {
                             
                             if(status){
                                 updateStatus()
-                                
                             }
                         }}
                         style={{
@@ -199,16 +190,11 @@ const Dashboard = () => {
                         <Info profile={profile} />
                     </Col>
                 </Row>
-                
-                
-
-
                 <Row>
                     {favourites.length>0 ? (
                         <Space>
                             <Title level={2}>Favourites</Title>
                             <Pagination
-                            // defaultCurrent={1}
                                 pageSize={pageSizeFav}
                                 current={currentFav}
                                 total={totalFavourites}

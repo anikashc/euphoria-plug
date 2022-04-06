@@ -72,7 +72,6 @@ class DashboardDataService {
 
     favouriteProfile = (profile) => {
         const userDoc = doc(db,'users', userId)
-        
 
         updateDoc(userDoc, {
             favourites: arrayUnion(profile)

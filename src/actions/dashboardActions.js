@@ -31,11 +31,8 @@ export const setFavourites = (value) => (dispatch) => {
     console.log('favourites',value)
 }
 
-export const setLogout = (value) => (dispatch) => {
-    dispatch({
-        type: 'SET_LOGOUT',
-        payload: value
-    })
+export const setLogout = () => (dispatch) => {
+    localStorage.removeItem("token");
     dispatch({
         type: 'SET_TOKEN_RESET'
     })
@@ -45,6 +42,6 @@ export const setLogout = (value) => (dispatch) => {
     dispatch({
         type: 'SET_PROFILES_RESET'
     })
-    localStorage.removeItem("token");
+    
 
 }

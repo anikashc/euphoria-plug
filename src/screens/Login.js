@@ -13,7 +13,6 @@ const Login = (props) => {
     const dispatch = useDispatch()
     let navigate = useNavigate();
 
-    // const setToken = useStore((state) => state.setToken);
     const token = useSelector((state) => state.token) || localStorage.getItem('token');
 
     useEffect(() => {
@@ -27,7 +26,6 @@ const Login = (props) => {
         const result = await signInAnonymously(auth)
         if(result){
             dispatch(setToken(result.user.accessToken))
-            // setToken(result.user.accessToken)
             if(!localStorage.getItem('userId')){
                 const getRandomUser = await axios.get('https://randomuser.me/api/')
                 const user = getRandomUser.data.results[0]
@@ -63,7 +61,6 @@ const Login = (props) => {
         const result = await signInWithPopup(auth, provider)
         if(result){
             dispatch(setToken(result.user.accessToken))
-            // setToken(result.user.accessToken)
             localStorage.setItem('userId', result.user.uid)
             const getUser = await UserDataService.getUser(result.user.uid)
             if(getUser.exists()){
@@ -113,12 +110,6 @@ const Login = (props) => {
             }
             </Col>
         </Row>
-        
-
-       
-
-        
-       
     </Layout>
   )
 }
