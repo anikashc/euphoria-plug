@@ -1,20 +1,20 @@
 import React,{useEffect} from 'react'
 import { Button, Col, Layout, Row, Space, Typography } from 'antd';
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from 'react-redux';
 import {auth} from '../firebase'
 import {signInWithPopup, GoogleAuthProvider,signInAnonymously } from "firebase/auth";
 import UserDataService from '../services/user.services';
 import axios from 'axios';
-import { v4 as uuidv4 } from 'uuid';
-import useStore from '../store';
 import { LoadingOutlined } from '@ant-design/icons';
+import { setToken } from '../actions/dashboardActions';
 
 const Login = (props) => {
+    const dispatch = useDispatch()
     let navigate = useNavigate();
 
-    const setToken = useStore((state) => state.setToken);
-    const token = useStore((state) => state.token) || localStorage.getItem('token');
-    // const setProfile = useStore((state) => state.setProfile);
+    // const setToken = useStore((state) => state.setToken);
+    const token = useSelector((state) => state.token) || localStorage.getItem('token');
 
     useEffect(() => {
         if(token){
@@ -26,7 +26,8 @@ const Login = (props) => {
     const signInAnon = async () => {
         const result = await signInAnonymously(auth)
         if(result){
-            setToken(result.user.accessToken)
+            dispatch(setToken(result.user.accessToken))
+            // setToken(result.user.accessToken)
             if(!localStorage.getItem('userId')){
                 const getRandomUser = await axios.get('https://randomuser.me/api/')
                 const user = getRandomUser.data.results[0]
@@ -58,10 +59,11 @@ const Login = (props) => {
         provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
         provider.setCustomParameters({
             'prompt': 'select_account'
-          });
+        });
         const result = await signInWithPopup(auth, provider)
         if(result){
-            setToken(result.user.accessToken)
+            dispatch(setToken(result.user.accessToken))
+            // setToken(result.user.accessToken)
             localStorage.setItem('userId', result.user.uid)
             const getUser = await UserDataService.getUser(result.user.uid)
             if(getUser.exists()){
@@ -86,19 +88,6 @@ const Login = (props) => {
                 navigate('/dashboard')
             }
         }   
-    }
-    const signOut = () => {
-        
-        signOut(auth)
-        .then(() => {
-            localStorage.removeItem('token');
-            setToken(null)
-            setProfile({})
-            navigate(`/`);
-        })
-        .catch(error => {
-            console.log(error)
-        })
     }
 
     return (

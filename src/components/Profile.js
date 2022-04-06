@@ -1,14 +1,17 @@
 import React from 'react'
+import { useDispatch, useSelector } from 'react-redux';
 import { Button, Card, Col, Image, Row, Avatar } from 'antd';
 import DashboardDataService from '../services/dashboard.services'
-import useStore from '../store';
+// import useStore from '../store/indexOld';
+import { setProfile, setProfiles, setFavourites} from '../actions/dashboardActions';
 const { Meta } = Card;
 
 const Profile = ({profile}) => {
-    const userProfile = useStore((state) => state.profile)
-    const setProfile = useStore((state) => state.setProfile)
-    const setProfiles = useStore((state) => state.setProfiles)
-    const setFavourites = useStore((state) => state.setFavourites)
+    const dispatch = useDispatch()
+    const userProfile = useSelector((state) => state.profile)
+    // const setProfile = useStore((state) => state.setProfile)
+    // const setProfiles = useStore((state) => state.setProfiles)
+    // const setFavourites = useStore((state) => state.setFavourites)
     const userId = localStorage.getItem('userId')
 
 
@@ -17,10 +20,10 @@ const Profile = ({profile}) => {
         const data = await DashboardDataService.dislikeProfile(dislikedUserId)
         const myProfile = data.docs.find(profile => profile.id === userId)
         const otherProfiles = data.docs.filter(doc => doc.id !== userId);    
-        setProfiles(otherProfiles.map(doc => (  
-            {...doc.data(), id: doc.id} 
-        )))
-        setProfile(myProfile.data())
+        dispatch(setProfiles(otherProfiles.map(doc => (  
+                {...doc.data(), id: doc.id} 
+            ))))
+        dispatch (setProfile(myProfile.data()))
     }
 
     const likeProfile = async (likedUserId) => {
@@ -28,41 +31,41 @@ const Profile = ({profile}) => {
         const data = await DashboardDataService.likeProfile(likedUserId)
         const myProfile = data.docs.find(profile => profile.id === userId)
         const otherProfiles = data.docs.filter(doc => doc.id !== userId);    
-        setProfiles(otherProfiles.map(doc => (  
-            {...doc.data(), id: doc.id} 
-        )))
-        setProfile(myProfile.data())
+        dispatch(setProfiles(otherProfiles.map(doc => (  
+                {...doc.data(), id: doc.id} 
+            ))))
+        dispatch (setProfile(myProfile.data()))
     }
     const unLikeProfile = async (likedUserId) => {
         console.log('unlike')
         const data = await DashboardDataService.unLikeProfile(likedUserId)
         const myProfile = data.docs.find(profile => profile.id === userId)
         const otherProfiles = data.docs.filter(doc => doc.id !== userId);    
-        setProfiles(otherProfiles.map(doc => (  
-            {...doc.data(), id: doc.id} 
-        )))
-        setProfile(myProfile.data())
+        dispatch(setProfiles(otherProfiles.map(doc => (  
+                {...doc.data(), id: doc.id} 
+            ))))
+        dispatch (setProfile(myProfile.data()))
     }
     const unDislikeProfile = async (dislikedUserId) => {
         console.log('dislike')
         const data = await DashboardDataService.unDislikeProfile(dislikedUserId)
         const myProfile = data.docs.find(profile => profile.id === userId)
         const otherProfiles = data.docs.filter(doc => doc.id !== userId);    
-        setProfiles(otherProfiles.map(doc => (  
-            {...doc.data(), id: doc.id} 
-        )))
-        setProfile(myProfile.data())
+        dispatch(setProfiles(otherProfiles.map(doc => (  
+                {...doc.data(), id: doc.id} 
+            ))))
+        dispatch (setProfile(myProfile.data()))
     }
     const starProfile = async (profile) => {
         console.log('star')
         const data = await DashboardDataService.favouriteProfile(profile)
         const myProfile = data.docs.find(profile => profile.id === userId)
         const otherProfiles = data.docs.filter(doc => doc.id !== userId);    
-        setProfiles(otherProfiles.map(doc => (  
-            {...doc.data(), id: doc.id} 
-        )))
-        setProfile(myProfile.data()) 
-        setFavourites(myProfile.data().favourites)
+        dispatch(setProfiles(otherProfiles.map(doc => (  
+                {...doc.data(), id: doc.id} 
+            ))))
+        dispatch (setProfile(myProfile.data())) 
+        dispatch(setFavourites(myProfile.data().favourites))
     }
     return (
 

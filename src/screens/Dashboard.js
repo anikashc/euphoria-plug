@@ -1,31 +1,34 @@
 import React, {useEffect,useState} from 'react'
-import { Input, Button,Col,Row,Layout,Pagination, Space,Spin, Grid, Skeleton } from 'antd';
+import { useDispatch, useSelector } from 'react-redux';
+import { Input, Button,Col,Row,Layout,Pagination, Space,Spin, Grid, Skeleton, Avatar } from 'antd';
 import { Typography } from 'antd';
-import {db,auth} from '../firebase'
 import { useNavigate } from 'react-router-dom';
 import DashboardDataService from '../services/dashboard.services'
 import UserDataServices from '../services/user.services'
 import Profile from '../components/profile';
 import Favourite from '../components/favourite'
-import useStore from '../store';
-import { LoadingOutlined } from '@ant-design/icons';
+// import useStore from '../store/indexOld';
 import Info from '../components/Info';
+import { setProfile, setProfiles, setFavourites, setToken, setLogout} from '../actions/dashboardActions';
 
 const { Title } = Typography;
 const { TextArea } = Input;
 const pageSizeFav = 3;
 const pageSizePro = 6;
 const Dashboard = () => {
-    const setProfile = useStore((state) => state.setProfile)
-    const setProfiles = useStore((state) => state.setProfiles)
-    const setFavourites = useStore((state) => state.setFavourites)
-    const logout = useStore((state) => state.logout)
-    const token = useStore((state) => state.token) || localStorage.getItem('token')
-    const profile = useStore((state) => state.profile)
-    const profiles = useStore((state) => state.profiles)
-    const favourites = useStore((state) => state.favourites)
+    const dispatch = useDispatch()
 
+    // const setProfile = useStore((state) => state.setProfile)
+    // const setProfiles = useStore((state) => state.setProfiles)
+    // const setFavourites = useStore((state) => state.setFavourites)
+    const logout = useSelector((state) => state.logout)
+    const token = useSelector((state) => state.token) || localStorage.getItem('token')
+    const profile = useSelector((state) => state.profile)
+    console.log(profile)
+    const profiles = useSelector((state) => state.profiles)
+    const favourites = useSelector((state) => state.favourites)
 
+    // for pagination
     const [isLoading, setIsLoading] = useState(false)
     const [isUpdating, setIsUpdating] = useState(false)
     const userId = localStorage.getItem('userId')
@@ -50,7 +53,7 @@ const Dashboard = () => {
         const updatedUser = await DashboardDataService.updateStatus(userId,{
             status: status
         })
-        setProfile(updatedUser.data())
+        dispatch (setProfile(updatedUser.data()))
         setStatus('')
         setIsUpdating(false)
     }
@@ -78,12 +81,20 @@ const Dashboard = () => {
             setTotalProfiles(data.docs.length)
             const myProfile = data.docs.find(profile => profile.id === userId)
             const otherProfiles = data.docs.filter(doc => doc.id !== userId);    
-            setProfiles(otherProfiles.map(doc => (  
+            // setProfiles(otherProfiles.map(doc => (  
+            //     {...doc.data(), id: doc.id} 
+            // )))
+            dispatch(setProfiles(otherProfiles.map(doc => (  
                 {...doc.data(), id: doc.id} 
-            )))
-            setProfile(myProfile.data())
+            ))))
+            dispatch(setProfile(myProfile.data()))
+            // setProfile(myProfile.data())
             console.log('profile',profile)
-            setFavourites(myProfile.data().favourites)
+            // setFavourites(myProfile.data().favourites)
+            dispatch(setFavourites(myProfile.data().favourites))
+
+
+            // for pagination
             setTotalFavourites(myProfile.data().favourites.length)
             setTotalPageFav(myProfile.data().favourites.length/pageSizeFav)
             setTotalPagePro(data.docs.length/pageSizePro)
@@ -99,13 +110,7 @@ const Dashboard = () => {
         })
 
         .catch(console.error);
-    }, [setProfile, setProfiles, setFavourites])
-
-    useEffect(() => {
-        if(!token){
-            navigate('/')
-        }
-    }, [logout, token, navigate])
+    }, [logout, token, setToken, setLogout, navigate, setProfile, setProfiles, setFavourites])
 
     if(isLoading){
         return <div><Skeleton active /></div>
@@ -161,6 +166,9 @@ const Dashboard = () => {
                 </Row>
 
                 <Row justify='center' gutter={99}>
+                    <Col span={3}>
+                        <Avatar shape="square" size={80} src={profile.photo} alt={profile.name} />
+                    </Col>
                     <Col span={10} 
                     >
                         <Title level={3}>What's your status?</Title>
@@ -186,7 +194,7 @@ const Dashboard = () => {
                         }}
                         >Update Status</Button>
                     </Col>
-                    <Col span={10}
+                    <Col span={11}
                     >
                         <Info profile={profile} />
                     </Col>

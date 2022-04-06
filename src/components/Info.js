@@ -1,6 +1,5 @@
 import React from 'react'
-import { Button, Card ,Avatar, Row, Col,Typography } from 'antd';
-import useStore from '../store';
+import { Card ,Avatar, Row, Col,Typography } from 'antd';
 const { Meta } = Card;
 const {Title} = Typography;
 
@@ -15,9 +14,8 @@ const Info = ({profile}) => {
                
             >
                 <Meta
-                avatar={<Avatar shape="square" src={profile.photo} alt={profile.name} />}
-                title={profile.name}
-                description={profile.status}
+                title={profile.status}
+                // description={profile.status}
                 style={{
                     whiteSpace: 'normal', height: 'auto',
                     overflow: 'hidden'

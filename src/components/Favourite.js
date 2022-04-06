@@ -1,26 +1,31 @@
 import React, {useState} from 'react'
 import { Button, Card, Col, Row, Avatar } from 'antd';
 import DashboardDataService from '../services/dashboard.services'
-import useStore from '../store';
+// import useStore from '../store/indexOld';
+import { useDispatch,useSelector } from 'react-redux';
+import { setProfile, setProfiles, setFavourites} from '../actions/dashboardActions';
+
 const { Meta } = Card;
 const Favourite = ({profile}) => {
-    const userProfile = useStore((state) => state.profile)
-    const setProfile = useStore((state) => state.setProfile)
-    const setProfiles = useStore((state) => state.setProfiles)
-    const setFavourites = useStore((state) => state.setFavourites)
+    const dispatch = useDispatch()
+    const userProfile = useSelector((state) => state.profile)
+    // const setProfile = useStore((state) => state.setProfile)
+    // const setProfiles = useStore((state) => state.setProfiles)
+    // const setFavourites = useStore((state) => state.setFavourites)
     const [isLoading, setIsLoading]  = useState(false)
     const userId = localStorage.getItem('userId')
     
     const dislikeProfile = async (dislikedUserId) => {
+        const dispatch = useDispatch
         setIsLoading(true)
         console.log('dislike')
         const data = await DashboardDataService.dislikeProfile(dislikedUserId)
         const myProfile = data.docs.find(profile => profile.id === userId)
         const otherProfiles = data.docs.filter(doc => doc.id !== userId);    
-        setProfiles(otherProfiles.map(doc => (  
+        dispatch(setProfiles(otherProfiles.map(doc => (  
             {...doc.data(), id: doc.id} 
-        )))
-        setProfile(myProfile.data())
+        ))))
+        dispatch(setProfile(myProfile.data()))
         setIsLoading(false)
     }
 
@@ -30,10 +35,10 @@ const Favourite = ({profile}) => {
         const data = await DashboardDataService.unDislikeProfile(dislikedUserId)
         const myProfile = data.docs.find(profile => profile.id === userId)
         const otherProfiles = data.docs.filter(doc => doc.id !== userId);    
-        setProfiles(otherProfiles.map(doc => (  
+        dispatch(setProfiles(otherProfiles.map(doc => (  
             {...doc.data(), id: doc.id} 
-        )))
-        setProfile(myProfile.data())
+        ))))
+        dispatch(setProfile(myProfile.data()))
         setIsLoading(false)
     }
 
@@ -43,10 +48,10 @@ const Favourite = ({profile}) => {
         const data = await DashboardDataService.likeProfile(likedUserId)
         const myProfile = data.docs.find(profile => profile.id === userId)
         const otherProfiles = data.docs.filter(doc => doc.id !== userId);    
-        setProfiles(otherProfiles.map(doc => (  
+        dispatch(setProfiles(otherProfiles.map(doc => (  
             {...doc.data(), id: doc.id} 
-        )))
-        setProfile(myProfile.data())
+        ))))
+        dispatch(setProfile(myProfile.data()))
         setIsLoading(false)
     }
 
@@ -56,10 +61,10 @@ const Favourite = ({profile}) => {
         const data = await DashboardDataService.unLikeProfile(likedUserId)
         const myProfile = data.docs.find(profile => profile.id === userId)
         const otherProfiles = data.docs.filter(doc => doc.id !== userId);    
-        setProfiles(otherProfiles.map(doc => (  
+        dispatch(setProfiles(otherProfiles.map(doc => (  
             {...doc.data(), id: doc.id} 
-        )))
-        setProfile(myProfile.data())
+        ))))
+        dispatch(setProfile(myProfile.data()))
         setIsLoading(false)
 
     }
@@ -70,11 +75,11 @@ const Favourite = ({profile}) => {
         const data = await DashboardDataService.unFavouriteProfile(profile)
         const myProfile = data.docs.find(profile => profile.id === userId)
         const otherProfiles = data.docs.filter(doc => doc.id !== userId);    
-        setProfiles(otherProfiles.map(doc => (  
+        dispatch(setProfiles(otherProfiles.map(doc => (  
             {...doc.data(), id: doc.id} 
-        )))
-        setProfile(myProfile.data()) 
-        setFavourites(myProfile.data().favourites)
+        ))))
+        dispatch(setProfile(myProfile.data()))
+        dispatch(setFavourites(myProfile.data().favourites))
         setIsLoading(false)
     }
 

@@ -3,28 +3,25 @@ import { Row, Col, Button, Typography,Modal } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import useStore from '../store';
 import React from 'react'
-
+import { setLogout, setToken} from '../actions/dashboardActions';
 import '../App.css'
+import { useSelector,useDispatch } from 'react-redux';
 const { confirm } = Modal;
 const { Text, Title, Link } = Typography;
 
 
 const Navbar = () => {
-  const token = useStore((state) => state.token) || localStorage.getItem('token')
-  const setToken = useStore((state) => state.setToken)
-  const setLogout = useStore((state) => state.setLogout);
-
+  const dispatch = useDispatch()
+  const token = useSelector((state) => state.token)
   const signOutOfEuphoria = async() => {
     
     if(!localStorage.getItem('anon')){
         await signOut(auth)
-        // setLogout(true)
-
         localStorage.removeItem('userId');
         localStorage.removeItem('anon');
-        localStorage.removeItem('token');
+        dispatch(setToken(null))
+        dispatch(setLogout(true))
     }
     else{
       confirm({
@@ -32,13 +29,12 @@ const Navbar = () => {
         icon: <ExclamationCircleOutlined />,
         async onOk(){
           await signOut(auth)
-          // setLogout(true)
-  
           if(!localStorage.getItem('anon')){
             localStorage.removeItem('userId');
           }
           localStorage.removeItem('anon');
-          localStorage.removeItem('token');
+          dispatch(setToken(null))
+          dispatch(setLogout(true))
         },
         async onCancel() {
           await signOut(auth)
@@ -46,12 +42,13 @@ const Navbar = () => {
   
           localStorage.removeItem('userId');
           localStorage.removeItem('anon');
-          localStorage.removeItem('token');
+          dispatch(setToken(null))
+          dispatch(setLogout(true))
         },
       });
+      
     }
-    setToken(null)
-    setLogout(true)
+    
   }
 
   return (

@@ -1,39 +1,33 @@
-import create from "zustand";
-import { devtools } from 'zustand/middleware'
+import { createStore, combineReducers, applyMiddleware } from 'redux';
+import thunk from  'redux-thunk';
+import { composeWithDevTools } from 'redux-devtools-extension';
+import {
+    setTokenReducer,
+    setProfileReducer,
+    setProfilesReducer,
+    setLogoutReducer,
+    setFavouritesReducer
+} from '../reducers/dashboardReducers'
 
-let store = (set) => ({
-    token: null,
+const reducer = combineReducers({
+    token: setTokenReducer,
+    profile: setProfileReducer,
+    profiles: setProfilesReducer,
+    logout: setLogoutReducer,
+    favourites: setFavouritesReducer
+})
+
+const initialState = {
+    token: localStorage.getItem('token') || null,
     profile: {},
     profiles: [],
     logout: false,
-    favourites: [],
-    setToken: (value) => {
-        set((state) => ({ token: value }));
-        set((state) => ({ logout: false }));
-        localStorage.setItem("token", value);
-    },
-    setProfile: (value) => {
-        console.log('profile',value)
-        set((state) => ({ profile: value }));
-    },
-    setProfiles: (value) => {
-        console.log('profiles',value)
-        set((state) => ({ profiles: value }));
-    },
-    setFavourites: (value) => {
-        console.log('favourites',value)
-        set((state) => ({ favourites: value }));
-    },
-    setLogout: (value) => {
-        set((state) => ({ logout: value }));
-        set((state) => ({ token: null }));
-        set((state) => ({ profile: {} }));
-        set((state) => ({ profiles: [] }));
-        localStorage.removeItem("token");
-    }
-});
+    favourites: []
+}
 
 
-const useStore = create(devtools(store));
+const middleware = [thunk];
 
-export default useStore; 
+const store = createStore(reducer, initialState, composeWithDevTools(applyMiddleware(...middleware)));
+
+export default store;
